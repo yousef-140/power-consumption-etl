@@ -1,0 +1,21 @@
+[2026-04-27T15:30:07.399+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-04-27T15:30:07.414+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: data_pipeline.read_and_print_file scheduled__2026-04-26T15:30:00+00:00 [queued]>
+[2026-04-27T15:30:07.421+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: data_pipeline.read_and_print_file scheduled__2026-04-26T15:30:00+00:00 [queued]>
+[2026-04-27T15:30:07.421+0000] {taskinstance.py:2866} INFO - Starting attempt 1 of 2
+[2026-04-27T15:30:07.433+0000] {taskinstance.py:2889} INFO - Executing <Task(BashOperator): read_and_print_file> on 2026-04-26 15:30:00+00:00
+[2026-04-27T15:30:07.438+0000] {standard_task_runner.py:72} INFO - Started process 587 to run task
+[2026-04-27T15:30:07.441+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', 'data_pipeline', 'read_and_print_file', 'scheduled__2026-04-26T15:30:00+00:00', '--job-id', '68', '--raw', '--subdir', 'DAGS_FOLDER/dag2.py', '--cfg-path', '/tmp/tmpfznfmx82']
+[2026-04-27T15:30:07.442+0000] {standard_task_runner.py:105} INFO - Job 68: Subtask read_and_print_file
+[2026-04-27T15:30:07.481+0000] {task_command.py:467} INFO - Running <TaskInstance: data_pipeline.read_and_print_file scheduled__2026-04-26T15:30:00+00:00 [running]> on host e345dd8461d9
+[2026-04-27T15:30:07.548+0000] {taskinstance.py:3132} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='data_pipeline' AIRFLOW_CTX_TASK_ID='read_and_print_file' AIRFLOW_CTX_EXECUTION_DATE='2026-04-26T15:30:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-04-26T15:30:00+00:00'
+[2026-04-27T15:30:07.549+0000] {taskinstance.py:731} INFO - ::endgroup::
+[2026-04-27T15:30:07.564+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-04-27T15:30:07.564+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', 'cat /tmp/raw_data.txt']
+[2026-04-27T15:30:07.572+0000] {subprocess.py:99} INFO - Output:
+[2026-04-27T15:30:07.575+0000] {subprocess.py:106} INFO - Processing
+[2026-04-27T15:30:07.576+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-04-27T15:30:07.596+0000] {taskinstance.py:340} INFO - ::group::Post task execution logs
+[2026-04-27T15:30:07.597+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=data_pipeline, task_id=read_and_print_file, run_id=scheduled__2026-04-26T15:30:00+00:00, execution_date=20260426T153000, start_date=20260427T153007, end_date=20260427T153007
+[2026-04-27T15:30:07.613+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-04-27T15:30:07.627+0000] {taskinstance.py:3895} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-04-27T15:30:07.629+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

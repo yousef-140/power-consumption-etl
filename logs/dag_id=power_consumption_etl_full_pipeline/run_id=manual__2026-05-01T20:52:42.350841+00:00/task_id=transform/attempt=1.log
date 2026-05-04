@@ -1,0 +1,26 @@
+[2026-05-01T20:53:22.430+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-05-01T20:53:22.445+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: power_consumption_etl_full_pipeline.transform manual__2026-05-01T20:52:42.350841+00:00 [queued]>
+[2026-05-01T20:53:22.454+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: power_consumption_etl_full_pipeline.transform manual__2026-05-01T20:52:42.350841+00:00 [queued]>
+[2026-05-01T20:53:22.455+0000] {taskinstance.py:2866} INFO - Starting attempt 1 of 1
+[2026-05-01T20:53:22.466+0000] {taskinstance.py:2889} INFO - Executing <Task(BashOperator): transform> on 2026-05-01 20:52:42.350841+00:00
+[2026-05-01T20:53:22.473+0000] {standard_task_runner.py:72} INFO - Started process 692 to run task
+[2026-05-01T20:53:22.476+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', 'power_consumption_etl_full_pipeline', 'transform', 'manual__2026-05-01T20:52:42.350841+00:00', '--job-id', '135', '--raw', '--subdir', 'DAGS_FOLDER/fullpip.py', '--cfg-path', '/tmp/tmpaphghpb6']
+[2026-05-01T20:53:22.478+0000] {standard_task_runner.py:105} INFO - Job 135: Subtask transform
+[2026-05-01T20:53:22.524+0000] {task_command.py:467} INFO - Running <TaskInstance: power_consumption_etl_full_pipeline.transform manual__2026-05-01T20:52:42.350841+00:00 [running]> on host 514d444babca
+[2026-05-01T20:53:22.612+0000] {taskinstance.py:3132} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='power_consumption_etl_full_pipeline' AIRFLOW_CTX_TASK_ID='transform' AIRFLOW_CTX_EXECUTION_DATE='2026-05-01T20:52:42.350841+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-05-01T20:52:42.350841+00:00'
+[2026-05-01T20:53:22.612+0000] {taskinstance.py:731} INFO - ::endgroup::
+[2026-05-01T20:53:22.628+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-05-01T20:53:22.629+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', 'docker exec -e PYTHONPATH=/usr/local/spark-3.5.0-bin-hadoop3/python:/usr/local/spark-3.5.0-bin-hadoop3/python/lib/py4j-0.10.9.7-src.zip spark-jupyter /opt/conda/bin/python /opt/***/dags/transform.py']
+[2026-05-01T20:53:22.640+0000] {subprocess.py:99} INFO - Output:
+[2026-05-01T20:53:24.657+0000] {subprocess.py:106} INFO - 26/05/01 20:53:24 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[2026-05-01T20:53:24.857+0000] {subprocess.py:106} INFO - Setting default log level to "WARN".
+[2026-05-01T20:53:24.858+0000] {subprocess.py:106} INFO - To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+[2026-05-01T20:53:31.052+0000] {subprocess.py:106} INFO - [Stage 1:>                                                          (0 + 8) / 8]26/05/01 20:53:31 WARN MemoryManager: Total allocation exceeds 95.00% (1,020,054,720 bytes) of heap memory
+[2026-05-01T20:53:31.052+0000] {subprocess.py:106} INFO - Scaling row group sizes to 95.00% for 8 writers
+[2026-05-01T20:53:38.017+0000] {subprocess.py:106} INFO - [Stage 1:=======>                                                   (1 + 7) / 8][Stage 1:===================================================>       (7 + 1) / 8]
+[2026-05-01T20:53:38.018+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-05-01T20:53:38.040+0000] {taskinstance.py:340} INFO - ::group::Post task execution logs
+[2026-05-01T20:53:38.040+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=power_consumption_etl_full_pipeline, task_id=transform, run_id=manual__2026-05-01T20:52:42.350841+00:00, execution_date=20260501T205242, start_date=20260501T205322, end_date=20260501T205338
+[2026-05-01T20:53:38.057+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-05-01T20:53:38.075+0000] {taskinstance.py:3895} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-05-01T20:53:38.077+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
