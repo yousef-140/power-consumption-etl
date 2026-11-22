@@ -12,3 +12,6 @@ data/source/household_power_consumption.txt
 
 # Airflow logs
 logs/
+
+# Generated batch data
+data/raw_power_batches/
