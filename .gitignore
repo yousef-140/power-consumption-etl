@@ -1,2 +1,15 @@
 data/source/household_power_consumption.txt
 .env
+# Python
+__pycache__/
+*.py[cod]
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Raw dataset
+data/source/household_power_consumption.txt
+
+# Airflow logs
+logs/
