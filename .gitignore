@@ -1,5 +1,4 @@
-data/source/household_power_consumption.txt
-.env
+
 # Python
 __pycache__/
 *.py[cod]
