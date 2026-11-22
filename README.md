@@ -1,8 +1,6 @@
 # Power Consumption ETL Pipeline
 
-<p align="center">
-  <strong>An end-to-end batch data engineering pipeline for household electricity consumption analytics.</strong>
-</p>
+**An end-to-end batch data engineering pipeline for household electricity consumption analytics.**
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
@@ -14,10 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yousef-140/power-consumption-etl">Repository</a>
-  ·
-  <a href="https://archive.ics.uci.edu/ml/datasets/individual+household+electric+power+consumption">Dataset</a>
-  ·
+  <a href="https://github.com/yousef-140/power-consumption-etl">Repository</a> ·
+  <a href="https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption">Dataset</a> ·
   <a href="https://yousef-140.github.io/">Portfolio</a>
 </p>
 
@@ -25,143 +21,228 @@
 
 ## Overview
 
-This project implements a batch ETL pipeline that processes household electricity consumption data and transforms raw records into structured, analytics-ready datasets.
+This project implements an end-to-end batch ETL pipeline for processing household electricity consumption data and preparing analytics-ready datasets.
 
-The pipeline uses Apache Airflow for orchestration, Apache Spark for distributed data processing, HDFS for data lake storage, and Snowflake as the analytical data warehouse.
+The pipeline combines Apache Airflow for workflow orchestration, Apache Spark for data processing, HDFS for data lake storage, and Snowflake as the analytical data warehouse.
 
-The final datasets support electricity consumption analysis through Power BI dashboards.
+The resulting datasets follow a Bronze, Silver, and Gold architecture and are designed to support electricity consumption analysis and Power BI reporting.
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["UCI Household Power Dataset"] --> B["Apache Airflow"]
-    B --> C["Apache Spark"]
-    C --> D["HDFS Bronze Layer"]
-    D --> E["Spark Transformation"]
-    E --> F["HDFS Silver Layer"]
-    F --> G["Spark Aggregation & Modeling"]
-    G --> H["HDFS Gold Layer"]
-    H --> I["Snowflake"]
-    I --> J["Power BI Dashboard"]
+    A[UCI Household Power Dataset] --> B[Extract.py]
+    B --> C[CSV Batches - 1000 Rows]
+    C --> D[Spark Local Mode]
+    D --> E[HDFS - Bronze Layer]
 
-    subgraph Data Lake
-        D
-        F
-        H
-    end
+    E --> F[Transform.py]
+    F --> G[Spark Local Mode]
+    G --> H[HDFS - Silver Layer]
+
+    H --> I[Load.py]
+    I --> J[Spark on YARN]
+    J --> K[HDFS - Gold Layer]
+    J --> L[Snowflake Data Warehouse]
+
+    L --> M[Power BI Dashboard]
+
+    N[Apache Airflow] --> O[fullpip.py DAG]
+    O --> B
+    O --> F
+    O --> I
 ```
+
+**Execution model:**
+
+- Apache Airflow orchestrates the three ETL tasks.
+- The DAG uses Docker commands to execute the Python scripts inside the `spark-jupyter` container.
+- Extract and Transform use Spark in `local[*]` mode.
+- Load uses Spark with YARN as its execution master.
+
+Note: Spark Local Mode means processing runs locally within the Jupyter container, not directly on the host machine.
 
 ## Technology Stack
 
 | Technology | Purpose |
 |---|---|
-| Python | Pipeline development and data processing |
-| Apache Airflow | Workflow orchestration |
-| Apache Spark | Distributed data transformation |
-| HDFS | Data lake storage |
-| YARN | Cluster resource management |
+| Python | ETL development and scripting |
+| Apache Airflow | Workflow orchestration and scheduling |
+| Apache Spark | Data processing and transformation |
+| PySpark | Spark processing through Python |
+| HDFS | Distributed data lake storage |
+| YARN | Cluster resource management for the loading stage |
 | Snowflake | Analytical data warehouse |
-| Power BI | Data visualization and reporting |
-| Docker Compose | Local infrastructure orchestration |
+| Docker Compose | Infrastructure orchestration |
+| PostgreSQL | Airflow metadata database |
 | Parquet | Columnar data storage |
+| Power BI | Data visualization and reporting |
 
 ## Data Engineering Workflow
 
 ### 1. Extraction — Bronze Layer
 
-- Reads household electricity consumption records.
-- Processes the input data in batches of 1,000 rows.
-- Writes extracted batches to HDFS in Parquet format.
-- Preserves the raw ingestion layer for subsequent processing.
+Implemented in `dags/extract.py`.
+
+- Reads the original household electricity consumption dataset.
+- Splits the input records into batches of 1,000 rows using Pandas.
+- Stores intermediate batches as CSV files.
+- Uses Spark to read the generated CSV batches.
+- Writes the extracted dataset to HDFS in Parquet format.
+
+**Output:**
+
+`/user/root/datalake/bronze/power_consumption`
 
 ### 2. Transformation — Silver Layer
 
-Spark processes the extracted data through cleaning and feature engineering.
+Implemented in `dags/transform.py`.
+
+Spark reads the Bronze Parquet dataset and applies data cleaning and feature engineering.
 
 Main operations include:
 
-- Handling null and invalid records.
-- Parsing and processing timestamps.
+- Handling missing and invalid values.
+- Converting measurement columns into numeric types.
+- Parsing date and time values into timestamps.
+- Removing records with missing required measurements or timestamps.
 - Extracting temporal features:
   - Hour
   - Day
   - Month
   - Year
   - Day of week
-  - Weekend indicator
-  - Peak-hours indicator
 - Calculating total sub-metering consumption.
-- Writing transformed datasets to the Silver layer.
+- Creating weekend and peak-hours indicators.
+
+**Output:**
+
+`/user/root/datalake/silver/power_consumption`
 
 ### 3. Loading — Gold Layer
 
-The pipeline prepares analytical datasets from the transformed records.
+Implemented in `dags/load.py`.
+
+Spark runs on YARN to prepare analytical datasets from the Silver layer.
+
+Two datasets are created:
 
 **FACT_POWER**
 
-Contains electricity consumption measurements for analytical queries.
+Contains electricity consumption measurements:
+
+- Event timestamp
+- Global active power
+- Global reactive power
+- Voltage
+- Global intensity
+- Sub-metering measurements
+- Total sub-metering consumption
 
 **TIME_DIM**
 
-Contains time-related attributes, including hour, day, month, year, and weekend information.
+Contains time-related attributes:
 
-The resulting Gold datasets are stored in HDFS and loaded into Snowflake for downstream analytics.
+- Event timestamp
+- Hour
+- Day
+- Month
+- Year
+- Day of week
+- Weekend indicator
 
-## Data Lake Design
+Both datasets are stored in HDFS as Parquet files and loaded into Snowflake using the Snowflake Spark Connector.
 
-| Layer | Description | Format |
+## Data Lake Architecture
+
+| Layer | Description | Storage Format |
 |---|---|---|
 | Bronze | Extracted source records | Parquet |
-| Silver | Cleaned and transformed records | Parquet |
-| Gold | Analytics-ready fact and dimension datasets | Parquet |
+| Silver | Cleaned and enriched records | Parquet |
+| Gold | Analytical fact and time datasets | Parquet |
+
+This layered architecture separates ingestion, transformation, and analytical data preparation.
+
+## Workflow Orchestration
+
+The main Airflow DAG is:
+
+`power_consumption_etl_full_pipeline`
+
+Defined in `dags/fullpip.py`.
+
+The DAG contains three sequential tasks:
+
+```text
+Extract → Transform → Load
+```
+
+Each task executes its corresponding Python script inside the `spark-jupyter` Docker container.
+
+Airflow is responsible for orchestration and scheduling, while Spark handles the data processing.
 
 ## Infrastructure
 
-The project uses Docker Compose to organize its local infrastructure.
+The Docker Compose environment includes:
 
-The environment includes:
+- **Apache Airflow:** Webserver, Scheduler, and Triggerer.
+- **Apache Spark / Jupyter:** PySpark execution environment.
+- **HDFS:** NameNode and two DataNodes.
+- **YARN:** ResourceManager and two NodeManagers.
+- **PostgreSQL:** Airflow metadata database.
 
-- Apache Airflow: Webserver, Scheduler, and Triggerer.
-- Apache Spark: Data processing through a PySpark environment.
-- HDFS: NameNode and two DataNodes.
-- YARN: ResourceManager and two NodeManagers.
-- PostgreSQL: Airflow metadata database.
+The infrastructure provides the environment for running and coordinating the ETL workflow.
 
 ## Dashboard & Analytics
 
-Power BI is used to explore electricity consumption patterns through:
+A Power BI dashboard accompanies the project to explore household electricity consumption patterns.
+
+The analysis includes:
 
 - Average power consumption by month.
-- Power consumption by hour.
+- Electricity consumption by hour.
 - Weekend versus weekday comparisons.
 - Year-based filtering.
 
-The dashboard provides an analytical view of consumption trends across different time periods.
+The dashboard export is available in the repository as a PDF file.
 
 ## Dataset
 
 **UCI Individual Household Electric Power Consumption Dataset**
 
-Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/individual+household+electric+power+consumption)
+Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption)
 
-The original dataset is approximately 126 MB and is not included in this repository.
+The dataset contains household electricity consumption measurements collected over time.
 
-Download the dataset from the original source and place it in the input location expected by the extraction code.
+The original dataset is approximately 126 MB and is not committed to this repository.
+
+Expected input path:
+
+```text
+data/source/household_power_consumption.txt
+```
+
+Generated CSV batches are stored under `data/raw_power_batches/` and excluded from Git tracking.
 
 ## Repository Structure
 
 ```text
 power-consumption-etl/
 │
-├── dags/                  # Airflow DAGs and pipeline tasks
+├── dags/
+│   ├── fullpip.py       # Main Airflow DAG
+│   ├── extract.py       # Data extraction
+│   ├── transform.py     # Data cleaning and transformation
+│   └── load.py           # Gold layer and Snowflake loading
+│
 ├── data/
-│   └── raw_power_batches/ # Extracted batch data
-├── logs/                  # Pipeline logs
+│   └── raw_power_batches/  # Generated CSV batches (gitignored)
+│
+├── logs/                  # Airflow logs (gitignored)
 ├── notebooks/             # Development notebooks
 │
-├── docker-compose.yaml    # Infrastructure configuration
-├── pipeline_diagrams.md   # Pipeline architecture diagrams
+├── docker-compose.yaml    # Docker infrastructure
+├── pipeline_diagrams.md   # Architecture diagrams
 ├── dashboard .pdf         # Power BI dashboard export
 ├── test.py                # Project test script
 ├── .gitignore
@@ -170,30 +251,34 @@ power-consumption-etl/
 
 ## Key Engineering Concepts
 
-This project demonstrates practical implementation of:
+This project demonstrates practical experience with:
 
-- Batch ETL processing.
-- Workflow orchestration with Apache Airflow.
-- Distributed data processing with Apache Spark.
-- HDFS-based data lake architecture.
+- Batch data ingestion.
+- ETL workflow orchestration.
+- Apache Spark Local Mode and YARN execution.
+- HDFS-based data lake storage.
 - Bronze, Silver, and Gold data organization.
-- Parquet-based storage.
-- Analytical data modeling.
+- Parquet data processing.
+- Data cleaning and feature engineering.
+- Analytical fact and dimension datasets.
 - Snowflake data warehouse integration.
+- Docker-based data engineering infrastructure.
 - Business intelligence and dashboard development.
 
 ## Limitations & Future Improvements
 
-The project is a learning and portfolio implementation. It is not presented as a production-ready data platform.
+This project is a learning and portfolio implementation, not a production-ready data platform.
 
 Potential improvements include:
 
-- Automated data quality validation.
-- Unit and integration testing.
-- Pipeline retry and failure-handling improvements.
+- Incremental data processing.
+- Automated data quality checks.
+- Improved error handling and retry mechanisms.
 - Structured logging and monitoring.
-- Incremental processing and idempotent loading.
-- Documentation of Snowflake schema and deployment configuration.
+- More efficient memory management during extraction.
+- Improved analytical data modeling.
+- Automated testing and validation.
+- Infrastructure and dependency version pinning.
 
 ## Author
 
@@ -207,6 +292,4 @@ AI & Data Engineering
 
 ---
 
-<p align="center">
-  <i>Building reliable data workflows, one pipeline at a time.</i>
-</p>
+*Building reliable data workflows, one pipeline at a time.*
